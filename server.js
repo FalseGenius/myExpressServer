@@ -35,7 +35,7 @@
 
 const express = require('express');
 const bodyParser = require('body-parser');
-
+const fortunes = require('./lib/fortune.js');
 const app = express();
 const {engine} = require('express-handlebars');
 app.engine('handlebars', engine());
@@ -47,15 +47,8 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static(__dirname + '/public'));
 app.set('port', process.env.PORT || 3000);
 
-const fortunes = [
-  'Something is wrong and I can feel it',
-  'Rivers need springs',
-  'Whenever possible, keep it simple'
-];
-
 app.get('/', (req, res) => {
-  const randomFortune = fortunes[Math.floor(Math.random() * fortunes.length)];
-  res.render('home', {fortune: randomFortune});
+  res.render('home', {fortune: fortunes.getFortunes()});
 });
 
 app.get('/about', (req, res) => {
