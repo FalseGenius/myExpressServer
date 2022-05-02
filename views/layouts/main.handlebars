@@ -3,10 +3,29 @@
 <head>
     <meta charset="utf-8">
     <title>Express</title>
+    {{#if showTests}}
+      <link rel='stylesheet' href='/vendor/mocha.css'>
+    {{/if}}
+    <script src='https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.6.0.min.js'></script>
 </head>
 <body>
 
     {{{body}}}
-
+    {{#if showTests}}
+      <div id='mocha'></div>
+      <script src="/vendor/mocha.js" charset="utf-8"></script>
+      <script src='/vendor/chai.js'></script>
+      <script>
+        mocha.ui('tdd');
+        let assert = chai.assert;
+      </script>
+      <script src='/qa/tests-global.js'></script>
+      {{#if showTests}}
+        <script src="{{pageTestScript}}"></script>
+      {{/if}}
+      <script>
+        mocha.run();
+      </script>
+    {{/if}}
 </body>
 </html>

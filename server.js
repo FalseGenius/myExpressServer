@@ -47,12 +47,17 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static(__dirname + '/public'));
 app.set('port', process.env.PORT || 3000);
 
+app.use((req, res, next) => {
+    res.locals.showTests = app.get('env') !== 'production' && req.query.test === '1';
+    next();
+})
+
 app.get('/', (req, res) => {
   res.render('home', {fortune: fortunes.getFortunes()});
 });
 
 app.get('/about', (req, res) => {
-  res.render('about');
+  res.render('about', {pageTestScript: '/qa/tests-about.js'});
 })
 
 app.get('/about', (req, res) => {
