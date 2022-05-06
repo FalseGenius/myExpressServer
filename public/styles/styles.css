@@ -1,0 +1,43 @@
+body {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  /* width: 100%; */
+}
+
+.header {
+  color: red;
+  border: 1px solid red;
+  /* width: 20%; */
+  padding: 30px;
+  border-radius: 2%;
+  margin: 30px;
+  background-color: black;
+  font-weight: 800;
+}
+
+.form {
+  border:1px solid gray;
+  padding: 10px;
+}
+
+.li {
+  list-style-type: none;
+  margin-left: 10px;
+}
+
+.custom {
+  width: 18%;
+  /* width: 300px; */
+  align-items: left;
+}
+
+.order {
+display: flex;
+/* justify-content: space-between; */
+}
+
+form > input {
+  outline: none;
+  border: none;
+}

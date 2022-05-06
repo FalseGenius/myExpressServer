@@ -1,81 +1,121 @@
-// const express = require('express');
-// const bodyParser = require('body-parser');
-// const https = require('https');
-// const app = express();
-//
-// app.use(bodyParser.urlencoded({extended: true}));
-// const custom = 'https://random-data-api.com/api/device/random_device';
-// app.get('/', (req, res) => {
-//   https.get(custom, (response) => {
-//     response.on('data', (data) => {
-//       const myData = JSON.parse(data);
-//       console.log(myData);
-//       res.write('You can buy ' + myData.manufacturer + ' product without delay');
-//       res.send();
-//
-//     })
-//   });
-//   // res.sendFile(__dirname + '/index.html');
-// })
-//
-// app.get('/about/troops' , (req, res) => {
-//   res.send('<h1>About page</h1>')
-// })
-//
-// app.post('/', (req, res) => {
-//   const num1 = req.body.num1;
-//   const num2 = req.body.num2;
-//   const num3 = parseInt(num1) + parseInt(num2);
-//   res.send(`The result is ${num3}`);
-// })
-//
-// app.listen(process.env.PORT || 3000, () => {
-//   console.log('Listening on port: 3000');
-// })
-
 const express = require('express');
+const ejs = require('ejs');
+const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
-const fortunes = require('./lib/fortune.js');
+const {day} = require('./clutter.js');
+
 const app = express();
-const {engine} = require('express-handlebars');
-app.engine('handlebars', engine());
-app.set('view engine', 'handlebars');
-app.set('views', './views');
-
-
-app.use(bodyParser.urlencoded({extended: true}));
-app.use(express.static(__dirname + '/public'));
+app.use(bodyParser.urlencoded({extended:true}));
+app.use(express.static('public'));
+app.set('view engine', 'ejs');
 app.set('port', process.env.PORT || 3000);
+let da = day();
 
-app.use((req, res, next) => {
-    res.locals.showTests = app.get('env') !== 'production' && req.query.test === '1';
-    next();
+const uri = 'mongodb://forAshir:defaultPassword@cluster0-shard-00-00.8bwhi.mongodb.net:27017,cluster0-shard-00-01.8bwhi.mongodb.net:27017,cluster0-shard-00-02.8bwhi.mongodb.net:27017/myExpressServer?ssl=true&replicaSet=atlas-6guudj-shard-0&authSource=admin&retryWrites=true&w=majority'
+
+mongoose.connect(uri, {
+  serverSelectionTimeoutMS: 5000
+  }).then(() => {
+    console.log('Connection successful');
+  }).catch((err) => {
+  console.log(err);
 })
+const db = mongoose.connection;
+const itemSchema = new mongoose.Schema({
+  name: String
+});
+const Item = mongoose.model('Item', itemSchema);
 
-app.get('/', (req, res) => {
-  res.render('home', {fortune: fortunes.getFortunes()});
+
+const listSchema = {
+  name: String,
+  items: [itemSchema]
+}
+const List = mongoose.model('List', listSchema);
+
+const item1 = new Item({
+  name: 'Something is wrong and I can feel it'
 });
 
-app.get('/about', (req, res) => {
-  res.render('about', {pageTestScript: '/qa/tests-about.js'});
+const defaultt = [item1];
+
+
+
+app.get('/', (req, res) => {
+  Item.find((err, docs) => {
+    res.render('list', {foo:'Today', item: docs});
+    // if (docs.length === 0) {
+    //   Item.insertMany(defaultItems, (err, docs) => {
+    //     if (err) {
+    //       console.log(err);
+    //     } else {
+    //       console.log('success');
+    //     }
+    //   })
+    //   res.redirect('/');
+    // } else {
+    //   if (err) {
+    //     res.render('list', {foo: da, item: []})
+    //   } else {
+    //     res.render('list', {foo: da, item: docs})
+    //   }
+    // }
+  })
+});
+
+app.get('/:customListName', (req, res) => {
+  const customListName = req.params.customListName;
+  List.findOne({name: customListName}, (err, foundList) => {
+    if (!err) {
+      if (!foundList) {
+        const list = new List({
+          name: customListName,
+          items: defaultt
+        });
+
+        list.save();
+        res.redirect('/' + customListName);
+      } else {
+        res.render('list', {foo:customListName, item:foundList.items});
+      }
+    }
+  })
 })
 
-app.get('/about', (req, res) => {
-  res.type('text/plain');
-  res.send('About page');
+app.get('/work', (req, res) => {
+  res.render('list', {foo: 'Work List', item: workList});
+});
+
+app.post('/delete', (req, res) => {
+  console.log(req.body.checkbox);
+  Item.findByIdAndRemove({_id: req.body.checkbox}, async () => {
+    await console.log('Deleted');
+  });
+
+  res.redirect('/');
 })
 
-app.get('/about/something', (req, res) => {
-  res.type('text/plain');
-  res.send('Something directory');
+app.post('/', async (req, res) => {
+  const b = req.body.button;
+  const ite = req.body.something;
+  const item = new Item({
+    name: ite
+  });
+  if (b === 'Today') {
+    await item.save();
+    res.redirect('/');
+  } else {
+    List.findOne({name: b}, (err, foundItems) => {
+      console.log(foundItems.items);
+      foundItems.items.push(item);
+      foundItems.save();
+      res.redirect('/' + b)
+    });
+
+  }
 })
 
-app.use((req, res) => {
-  res.type('text/plain');
-  res.status(404);
-  res.send('404 not found');
-})
 
 app.listen(app.get('port'), () => {
-  console.log('Listening on port: ' + app.get('port'));
+  console.log('Listening on port 3000');
 })
