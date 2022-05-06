@@ -11,7 +11,7 @@ app.set('view engine', 'ejs');
 app.set('port', process.env.PORT || 3000);
 let da = day();
 
-const uri = 'mongodb://forAshir:defaultPassword@cluster0-shard-00-00.8bwhi.mongodb.net:27017,cluster0-shard-00-01.8bwhi.mongodb.net:27017,cluster0-shard-00-02.8bwhi.mongodb.net:27017/myExpressServer?ssl=true&replicaSet=atlas-6guudj-shard-0&authSource=admin&retryWrites=true&w=majority'
+const uri = 'connectionLink'
 
 mongoose.connect(uri, {
   serverSelectionTimeoutMS: 5000
